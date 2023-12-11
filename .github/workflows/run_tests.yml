@@ -1,0 +1,72 @@
+name: Run Tests
+on:
+  workflow_dispatch:
+    inputs:
+      num:
+        description: 'Number of times to run tests'
+        required: true
+        default: '100'
+env:
+  CI: true
+  BASE_URL: ${{ secrets.BASE_URL }}
+  SYS_ADMIN_USERNAME: ${{ secrets.SYS_ADMIN_USERNAME }}
+  SYS_ADMIN_PASSWORD: ${{ secrets.SYS_ADMIN_PASSWORD }}
+  TARGET_APP_ID: ${{ secrets.TARGET_APP_ID }}
+jobs:
+  run_tests:
+    name: 'Run Tests'
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1/10, 2/10, 3/10, 4/10, 5/10, 6/10, 7/10, 8/10, 9/10, 10/10]
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: latest
+      - name: Install dependencies
+        run: npm ci
+      - name: Run your tests
+        run: npm run test -- --repeat-each ${{ github.event.inputs.num }} --shard ${{ matrix.shard }}
+        env:
+          HOME: /root
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-blob-reports
+          path: blob-report
+          retention-days: 1
+  merge_reports:
+    name: 'Merge Blob Reports'
+    if: always()
+    needs: [run_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v3
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm ci
+      - name: Download blob reports
+        uses: actions/download-artifact@v3
+        with:
+          name: all-blob-reports
+          path: all-blob-reports
+      - name: Merge into HTML Report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: html-report--attempt-${{ github.run_attempt }}
+          path: playwright-report
+          retention-days: 14
