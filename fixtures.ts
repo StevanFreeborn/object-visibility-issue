@@ -11,6 +11,15 @@ export const test = base.extend<TestFixtures>({
       storageState: sysAdminAuth.storagePath,
     });
     const page = await context.newPage();
+
+    page.on('response', async response => {
+      if ([524, 520].includes(response.status())) {
+        throw new Error(
+          `Request to ${response.url()} failed with status ${response.status()}`
+        );
+      }
+    });
+
     await use(page);
     await page.close();
     await context.close();

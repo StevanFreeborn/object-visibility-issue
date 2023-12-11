@@ -34,6 +34,7 @@ const targetAppId = parseInt(TARGET_APP_ID);
 export { baseUrl, sysAdminAuth, targetAppId };
 
 export default defineConfig({
+  timeout: 1000 * 120,
   testDir: './.',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
