@@ -1,11 +1,12 @@
 import { expect } from '@playwright/test';
+import { v4 as uuidv4 } from 'uuid';
 import { test } from './fixtures';
 import { targetAppId } from './playwright.config';
 
 test('can create object visibility outcomes successfully', async ({
   sysAdmin,
 }) => {
-  const triggerName = `${Date.now()}_trigger`;
+  const triggerName = `${uuidv4()}_${Date.now()}_trigger`;
   const triggerFrame = sysAdmin
     .locator('div', {
       has: sysAdmin.getByText(/Triggers:/),
