@@ -4,7 +4,6 @@ on:
     inputs:
       num:
         description: 'Number of times to run tests'
-        required: true
         default: '100'
 env:
   CI: true
