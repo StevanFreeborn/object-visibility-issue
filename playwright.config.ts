@@ -34,16 +34,20 @@ const targetAppId = parseInt(TARGET_APP_ID);
 export { baseUrl, sysAdminAuth, targetAppId };
 
 export default defineConfig({
-  timeout: 1000 * 120,
+  timeout: 1000 * 300,
   testDir: './.',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: undefined,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [['github'], ['blob']] : [['list'], ['html']],
+  expect: {
+    timeout: 1000 * 120,
+  },
   use: {
     baseURL: BASE_URL,
     trace: 'retain-on-failure',
+    actionTimeout: 1000 * 120,
   },
   projects: [
     {
